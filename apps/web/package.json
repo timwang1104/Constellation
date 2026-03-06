@@ -9,11 +9,14 @@
     "start": "next start"
   },
   "dependencies": {
+    "@types/dagre": "^0.7.54",
     "clsx": "^2.1.1",
+    "dagre": "^0.8.5",
     "lucide-react": "^0.577.0",
     "next": "^14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "reactflow": "^11.11.4",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

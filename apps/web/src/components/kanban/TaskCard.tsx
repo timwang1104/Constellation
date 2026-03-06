@@ -1,18 +1,9 @@
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/Card";
 import { Bot, User, AlertCircle, GitPullRequest } from "lucide-react";
+import { Task } from "@/types/kanban";
 
-export type Task = {
-  id: string;
-  title: string;
-  status: 'todo' | 'inprogress' | 'blocked' | 'done';
-  assignee?: {
-    type: 'human' | 'agent';
-    name: string;
-  };
-  priority: 'high' | 'medium' | 'low';
-  tags: string[];
-};
+export type { Task };
 
 export function TaskCard({ task }: { task: Task }) {
   const isBlocked = task.status === 'blocked';
