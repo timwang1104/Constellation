@@ -1,5 +1,5 @@
 {
-  "name": "@prj_kanban/web",
+  "name": "@constellation/web",
   "private": true,
   "version": "0.1.0",
   "type": "module",

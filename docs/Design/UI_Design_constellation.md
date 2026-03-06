@@ -1,6 +1,6 @@
-# 前端界面设计文档：prj_kanban
+# 前端界面设计文档：Constellation
 
-本文档基于 [PRD_kanban_agent.md](../PRD/PRD_kanban_agent.md) 与 [ARCH_prj_kanban.md](../Architecture/ARCH_prj_kanban.md) 编写，旨在定义 `prj_kanban` 的前端交互界面、视觉规范与关键流程体验。
+本文档基于 [PRD_kanban_agent.md](../PRD/PRD_kanban_agent.md) 与 [ARCH_constellation.md](../Architecture/ARCH_constellation.md) 编写，旨在定义 `Constellation` 的前端交互界面、视觉规范与关键流程体验。
 
 ## 1. 设计概述
 

@@ -1,4 +1,4 @@
-# Project Kanban
+# Constellation
 
 A modern, full-stack Kanban and Project Talent Tree application built with Next.js and NestJS.
 
@@ -55,7 +55,7 @@ prj_kanban/
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd prj_kanban
+   cd constellation
    ```
 
 2. Install dependencies (from the root directory):
@@ -102,8 +102,8 @@ The API will be available at [http://localhost:3001](http://localhost:3001).
 ## 📖 Documentation
 
 Detailed documentation can be found in the `docs/` directory:
-- [Architecture Overview](docs/Architecture/ARCH_prj_kanban.md)
-- [UI Design](docs/Design/UI_Design_prj_kanban.md)
+- [Architecture Overview](docs/Architecture/ARCH_constellation.md)
+- [UI Design](docs/Design/UI_Design_constellation.md)
 - [Product Requirements](docs/PRD/)
 
 ## 🤝 Contributing

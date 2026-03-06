@@ -14,9 +14,9 @@ export function Navbar() {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 bg-ink-black flex items-center justify-center rounded-[2px]">
-            <span className="text-white font-mono font-bold">K</span>
+            <span className="text-white font-mono font-bold">C</span>
           </div>
-          <span className="font-sans font-bold text-lg tracking-tight text-ink-black">prj_kanban</span>
+          <span className="font-sans font-bold text-lg tracking-tight text-ink-black">Constellation</span>
         </div>
 
         {/* View Switcher */}

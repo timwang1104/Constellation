@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'prj_kanban | Digital Concrete',
+  title: 'Constellation | Digital Concrete',
   description: 'AI Agent Kanban Board with Tadao Ando Style',
 }
 

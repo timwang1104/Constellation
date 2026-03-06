@@ -1,6 +1,6 @@
-# 架构设计：prj_kanban（面向 AI Agent 的开发任务看板与依赖约束）
+# 架构设计：Constellation（面向 AI Agent 的开发任务看板与依赖约束）
 
-本文档基于 [PRD_kanban_agent.md](file:///d:/work/projs/prj_kanban/docs/PRD/PRD_kanban_agent.md) 的功能与验收标准，给出可落地、可演进的系统架构设计。
+本文档基于 [PRD_kanban_agent.md](../PRD/PRD_kanban_agent.md) 的功能与验收标准，给出可落地、可演进的系统架构设计。
 
 ## 1. 架构目标
 
