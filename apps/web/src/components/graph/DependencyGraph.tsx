@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -12,20 +12,35 @@ import ReactFlow, {
   Edge,
   Node,
   BackgroundVariant,
+  Panel,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Task, Dependency } from '@/types/kanban';
 import { TaskNode } from './TaskNode';
 import { getLayoutedElements } from '@/lib/graph-layout';
+import { MousePointer2, Hand, MousePointerClick } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface DependencyGraphProps {
   tasks: Task[];
   dependencies: Dependency[];
+  onConnect: (connection: Connection) => void;
+  onNodeDoubleClick: (task: Task) => void;
+  onDeleteNodes: (taskIds: string[]) => void;
+  onDeleteEdges: (dependencyIds: string[]) => void;
 }
 
-export function DependencyGraph({ tasks, dependencies }: DependencyGraphProps) {
+export function DependencyGraph({ 
+  tasks, 
+  dependencies,
+  onConnect: onConnectProp,
+  onNodeDoubleClick,
+  onDeleteNodes,
+  onDeleteEdges
+}: DependencyGraphProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   const nodeTypes = useMemo(() => ({ task: TaskNode }), []);
 
@@ -60,8 +75,12 @@ export function DependencyGraph({ tasks, dependencies }: DependencyGraphProps) {
   }, [tasks, dependencies, setNodes, setEdges]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      // Optimistically add edge locally (optional, but good for feedback)
+      setEdges((eds) => addEdge(params, eds)); 
+      onConnectProp(params);
+    },
+    [setEdges, onConnectProp]
   );
 
   return (
@@ -72,10 +91,39 @@ export function DependencyGraph({ tasks, dependencies }: DependencyGraphProps) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onNodeDoubleClick={(_, node) => onNodeDoubleClick(node.data)}
+        onNodesDelete={(nodes) => onDeleteNodes(nodes.map(n => n.id))}
+        onEdgesDelete={(edges) => onDeleteEdges(edges.map(e => e.id))}
         nodeTypes={nodeTypes}
         fitView
         attributionPosition="bottom-right"
+        deleteKeyCode={['Backspace', 'Delete']}
+        multiSelectionKeyCode={['Meta', 'Control']}
+        selectionOnDrag={isSelectionMode}
+        panOnDrag={!isSelectionMode}
+        zoomOnScroll={true}
+        panOnScroll={true}
       >
+        <Panel position="top-left" className="bg-white p-1 rounded-md shadow-md border border-concrete-rough flex gap-1">
+          <Button
+            variant={!isSelectionMode ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setIsSelectionMode(false)}
+            title="Pan Mode (Hand)"
+            className="w-8 h-8 p-0"
+          >
+            <Hand size={18} />
+          </Button>
+          <Button
+            variant={isSelectionMode ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={() => setIsSelectionMode(true)}
+            title="Selection Mode (Box Select)"
+            className="w-8 h-8 p-0"
+          >
+            <MousePointer2 size={18} />
+          </Button>
+        </Panel>
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#cbd5e1" />
         <Controls showInteractive={false} className="bg-white border-concrete-rough text-ink-dark shadow-sm" />
         <MiniMap 

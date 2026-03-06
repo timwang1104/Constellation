@@ -2,8 +2,19 @@
   "name": "prj_kanban",
   "private": true,
   "version": "0.1.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:api": "npm run dev -w apps/api",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "start": "npm run infra:up && npm run dev"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

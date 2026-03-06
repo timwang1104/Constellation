@@ -19,7 +19,7 @@ const getIconForTask = (tags: string[]) => {
   return <Code size={24} />;
 };
 
-export function TaskNode({ data }: NodeProps<Task>) {
+export function TaskNode({ data, selected }: NodeProps<Task>) {
   const task = data;
   const isBlocked = task.status === 'blocked';
   const isDone = task.status === 'done';
@@ -37,7 +37,8 @@ export function TaskNode({ data }: NodeProps<Task>) {
     isDone ? "border-status-done shadow-green-500/20" :
     isInProgress ? "border-status-inprogress shadow-blue-500/20 animate-pulse-slow" :
     isBlocked ? "border-status-blocked/50 opacity-80 grayscale-[0.5]" :
-    "border-concrete-rough hover:border-ink-medium"
+    "border-concrete-rough hover:border-ink-medium",
+    selected && "ring-2 ring-offset-2 ring-status-agent border-status-agent"
   );
 
   const iconColor = cn(
