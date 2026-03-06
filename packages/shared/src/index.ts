@@ -1,0 +1,93 @@
+export type TaskStatus = "todo" | "doing" | "done" | "blocked" | "canceled";
+
+export type AssigneeType = "none" | "human" | "agent";
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  assigneeType: AssigneeType;
+  assigneeId?: string;
+  priority?: number;
+  createdAt: string;
+  updatedAt: string;
+  version: number;
+}
+
+export interface DependencyEdge {
+  fromTaskId: string;
+  toTaskId: string;
+  createdAt: string;
+}
+
+export interface ClaimRecord {
+  taskId: string;
+  assigneeType: AssigneeType;
+  assigneeId: string;
+  time: string;
+  reason?: string;
+}
+
+export type EventType =
+  | "task_created"
+  | "task_updated"
+  | "task_claimed"
+  | "task_released"
+  | "task_transitioned"
+  | "dependency_added"
+  | "dependency_removed"
+  | "agent_progress"
+  | "agent_message"
+  | "task_archived";
+
+export interface TaskEvent {
+  id: string;
+  taskId: string;
+  type: EventType;
+  actorType: AssigneeType | "system";
+  actorId?: string;
+  payloadJson?: unknown;
+  ts: string;
+}
+
+export type AgentSessionStatus =
+  | "created"
+  | "running"
+  | "completed"
+  | "failed"
+  | "archived"
+  | "destroyed";
+
+export interface AgentSession {
+  id: string;
+  taskId: string;
+  agentId: string;
+  status: AgentSessionStatus;
+  startedAt: string;
+  endedAt?: string;
+  lastHeartbeatAt?: string;
+  progressJson?: unknown;
+}
+
+export interface AgentMessage {
+  id: string;
+  sessionId: string;
+  ts: string;
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  toolCallJson?: unknown;
+  tokenUsageJson?: unknown;
+  redacted?: boolean;
+}
+
+export interface ArchiveRecord {
+  id: string;
+  taskId: string;
+  sessionId?: string;
+  artifactUri: string;
+  hash?: string;
+  sizeBytes?: number;
+  createdAt: string;
+  retentionUntil?: string;
+}
