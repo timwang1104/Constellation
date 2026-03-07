@@ -4,12 +4,14 @@ export const initialEpics: Epic[] = [
   {
     id: 'epic-1',
     title: 'E1: MVP Infrastructure',
+    description: 'Set up the initial project structure, CI/CD pipelines, and core infrastructure requirements for the MVP release.',
     status: 'done',
     progress: 100
   },
   {
     id: 'epic-2',
     title: 'E2: User Management',
+    description: 'Implement user authentication, authorization, profile management, and dashboard features.',
     status: 'inprogress',
     progress: 60
   },

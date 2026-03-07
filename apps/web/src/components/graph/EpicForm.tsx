@@ -11,6 +11,7 @@ interface EpicFormProps {
 
 export function EpicForm({ initialData, onSubmit, onCancel, onDelete }: EpicFormProps) {
   const [title, setTitle] = useState(initialData?.title || '');
+  const [description, setDescription] = useState(initialData?.description || '');
   const [status, setStatus] = useState<TaskStatus>(initialData?.status || 'todo');
   const [progress, setProgress] = useState(initialData?.progress || 0);
 
@@ -18,6 +19,7 @@ export function EpicForm({ initialData, onSubmit, onCancel, onDelete }: EpicForm
     e.preventDefault();
     onSubmit({
       title,
+      description,
       status,
       progress,
     });
@@ -34,6 +36,16 @@ export function EpicForm({ initialData, onSubmit, onCancel, onDelete }: EpicForm
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
           autoFocus
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+          placeholder="Describe the epic..."
         />
       </div>
 

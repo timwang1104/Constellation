@@ -84,15 +84,7 @@ export function EpicSelector({ epics, selectedEpicId, onSelect, onAddEpic, onEdi
                   : 'translateZ(-10px) rotateX(0deg)'
               }}
             >
-              <div className="flex justify-between items-start mb-2">
-                <span className={cn(
-                  "text-xs font-mono px-1.5 py-0.5 rounded border",
-                  isSelected 
-                    ? "bg-ink-black text-white border-ink-black" 
-                    : "bg-transparent text-ink-medium border-ink-light/30"
-                )}>
-                  {epic.id.split('-')[1] || epic.id}
-                </span>
+              <div className="flex justify-end items-start mb-2 min-h-[26px]">
                 <div className="flex items-center gap-2">
                   {isSelected && (
                     <button 
@@ -111,12 +103,18 @@ export function EpicSelector({ epics, selectedEpicId, onSelect, onAddEpic, onEdi
               </div>
               
               <h3 className={cn(
-                "font-bold text-lg mb-3 transition-colors",
+                "font-bold text-lg mb-1 transition-colors",
                 isSelected ? "text-ink-black" : "text-ink-dark"
               )}>
                 {epic.title}
               </h3>
               
+              {isSelected && epic.description && (
+                <p className="text-xs text-ink-medium mb-3 line-clamp-3">
+                  {epic.description}
+                </p>
+              )}
+
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-ink-medium uppercase tracking-wider font-semibold">
                   <span>Progress</span>

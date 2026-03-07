@@ -14,6 +14,7 @@ export interface Assignee {
 export interface Epic {
   id: string;
   title: string;
+  description?: string;
   status: TaskStatus;
   progress: number;
 }
