@@ -89,7 +89,11 @@ export function TaskNode({ data, selected }: NodeProps<Task>) {
 
       {/* Main Node */}
       <div className={containerStyle}>
-        <Handle type="target" position={Position.Top} className="!bg-transparent !border-0 w-full h-full absolute top-0 left-0 z-10" isConnectable={false} />
+        {/* Handles on all 4 sides for flexible connections */}
+        <Handle type="target" position={Position.Top} id="top" className="!bg-transparent !w-2 !h-2 !border-0 !top-0 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+        <Handle type="target" position={Position.Left} id="left" className="!bg-transparent !w-2 !h-2 !border-0 !left-0 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+        <Handle type="source" position={Position.Right} id="right" className="!bg-transparent !w-2 !h-2 !border-0 !right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+        <Handle type="source" position={Position.Bottom} id="bottom" className="!bg-transparent !w-2 !h-2 !border-0 !bottom-0 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
         
         <div className={iconColor}>
           {getIconForTask(task.tags)}
@@ -109,12 +113,10 @@ export function TaskNode({ data, selected }: NodeProps<Task>) {
         )}
 
         {/* Rank/Points (Optional WoW flavor) */}
-        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white text-[10px] font-mono text-ink-medium px-1.5 rounded border border-concrete-rough shadow-sm">
+        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white text-[10px] font-mono text-ink-medium px-1.5 rounded border border-concrete-rough shadow-sm z-20">
           {isDone ? '1/1' : '0/1'}
         </div>
       </div>
-
-      <Handle type="source" position={Position.Bottom} className="!bg-ink-light !w-2 !h-2 !border-0 !bottom-0 opacity-0 group-hover:opacity-100 transition-opacity" />
     </div>
   );
 }

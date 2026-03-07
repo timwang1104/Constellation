@@ -58,16 +58,21 @@ export function DependencyGraph({
       id: dep.id,
       source: dep.source,
       target: dep.target,
+      sourceHandle: dep.sourceHandle,
+      targetHandle: dep.targetHandle,
       animated: true,
       style: { stroke: '#94a3b8', strokeWidth: 2 },
-      type: 'smoothstep',
+      type: 'default', // Bezier curve for smooth connection
+      selectable: true, // Explicitly allow selection
+      interactionWidth: 20, // Easier to click
+      className: 'cursor-pointer', 
     }));
 
     // Apply layout
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       initialNodes,
       initialEdges,
-      'TB'
+      'LR'
     );
 
     setNodes(layoutedNodes);

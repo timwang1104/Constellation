@@ -1,4 +1,25 @@
-import { Task, Dependency } from "@/types/kanban";
+import { Task, Dependency, Epic } from "@/types/kanban";
+
+export const initialEpics: Epic[] = [
+  {
+    id: 'epic-1',
+    title: 'E1: MVP Infrastructure',
+    status: 'done',
+    progress: 100
+  },
+  {
+    id: 'epic-2',
+    title: 'E2: User Management',
+    status: 'inprogress',
+    progress: 60
+  },
+  {
+    id: 'epic-3',
+    title: 'E3: Payment Integration',
+    status: 'blocked',
+    progress: 0
+  }
+];
 
 export const initialTasks: Task[] = [
   { 
@@ -7,7 +28,8 @@ export const initialTasks: Task[] = [
     status: 'done', 
     priority: 'high', 
     tags: ['infra'], 
-    assignee: { type: 'human', name: 'Alice' } 
+    assignee: { type: 'human', name: 'Alice' },
+    epicId: 'epic-1'
   },
   { 
     id: '102', 
@@ -15,7 +37,8 @@ export const initialTasks: Task[] = [
     status: 'done', 
     priority: 'high', 
     tags: ['devops'], 
-    assignee: { type: 'agent', name: 'DevBot' } 
+    assignee: { type: 'agent', name: 'DevBot' },
+    epicId: 'epic-1'
   },
   { 
     id: '103', 
@@ -23,7 +46,8 @@ export const initialTasks: Task[] = [
     status: 'inprogress', 
     priority: 'high', 
     tags: ['backend'], 
-    assignee: { type: 'human', name: 'Bob' } 
+    assignee: { type: 'human', name: 'Bob' },
+    epicId: 'epic-2'
   },
   { 
     id: '104', 
@@ -31,7 +55,8 @@ export const initialTasks: Task[] = [
     status: 'inprogress', 
     priority: 'medium', 
     tags: ['frontend'], 
-    assignee: { type: 'agent', name: 'DesignBot' } 
+    assignee: { type: 'agent', name: 'DesignBot' },
+    epicId: 'epic-1'
   },
   { 
     id: '105', 
@@ -39,21 +64,24 @@ export const initialTasks: Task[] = [
     status: 'blocked', 
     priority: 'high', 
     tags: ['payment'], 
-    assignee: { type: 'human', name: 'Charlie' } 
+    assignee: { type: 'human', name: 'Charlie' },
+    epicId: 'epic-3'
   }, // Blocked by Auth
   { 
     id: '106', 
     title: 'Create User Dashboard', 
     status: 'todo', 
     priority: 'medium', 
-    tags: ['frontend'] 
+    tags: ['frontend'],
+    epicId: 'epic-2'
   },
   { 
     id: '107', 
     title: 'Write API Documentation', 
     status: 'todo', 
     priority: 'low', 
-    tags: ['docs'] 
+    tags: ['docs'],
+    epicId: 'epic-1'
   },
 ];
 

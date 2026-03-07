@@ -76,6 +76,8 @@ graph TD
     *   **关联架构**：小图标显示关联的组件（如 "Login Service"）。
 
 ### 3.3 依赖图视图 (Dependency Graph)
+> **详细设计文档**：请参考 [UI_Design_Graph_Page.md](./UI_Design_Graph_Page.md)
+
 *   **核心功能**：可视化 DAG（有向无环图），管理任务依赖。
 *   **交互**：
     *   **缩放/平移**：支持鼠标滚轮缩放、拖拽平移画布。

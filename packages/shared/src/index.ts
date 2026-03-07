@@ -11,8 +11,16 @@ export interface Assignee {
   id?: string;
 }
 
+export interface Epic {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  progress: number;
+}
+
 export interface Task {
   id: string;
+  epicId?: string;
   title: string;
   description?: string;
   status: TaskStatus;
@@ -30,6 +38,8 @@ export interface Dependency {
   id: string;
   source: string; // source task id (predecessor)
   target: string; // target task id (successor)
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
   type?: "finish_to_start";
   createdAt?: string;
 }

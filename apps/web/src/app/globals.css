@@ -30,3 +30,14 @@ body {
     border-radius: 2px;
   }
 }
+
+/* ReactFlow Customizations */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #531DAB !important; /* Agent Purple */
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 0 2px rgba(83, 29, 171, 0.5));
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #262626; /* Ink Black */
+}
