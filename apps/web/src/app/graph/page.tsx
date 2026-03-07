@@ -3,18 +3,25 @@
 import React, { useState, useCallback } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { DependencyGraph } from '@/components/graph/DependencyGraph';
-import { initialTasks, initialDependencies } from '@/data/mock';
 import { Task, Dependency } from '@/types/kanban';
 import { Connection } from 'reactflow';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { TaskForm } from '@/components/graph/TaskForm';
 import { Plus } from 'lucide-react';
+import { useTaskContext } from '@/context/TaskContext';
 
 export default function GraphPage() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [dependencies, setDependencies] = useState<Dependency[]>(initialDependencies);
-  
+  const { 
+    tasks, 
+    dependencies, 
+    addTask, 
+    updateTask, 
+    deleteTasks, 
+    addDependency, 
+    removeDependencies 
+  } = useTaskContext();
+
   // Modal State
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -24,55 +31,42 @@ export default function GraphPage() {
     const newTask: Task = {
       ...taskData,
       id: Math.random().toString(36).substr(2, 9), // Simple ID generation
+      tags: taskData.tags || [],
     };
-    setTasks((prev) => [...prev, newTask]);
+    addTask(newTask);
     setIsTaskModalOpen(false);
   };
 
   const handleEditTask = (taskData: Omit<Task, 'id'>) => {
     if (!editingTask) return;
-    setTasks((prev) => 
-      prev.map((t) => (t.id === editingTask.id ? { ...t, ...taskData } : t))
-    );
+    updateTask({ ...editingTask, ...taskData });
     setEditingTask(null);
     setIsTaskModalOpen(false);
   };
 
   const handleDeleteNodes = useCallback((taskIds: string[]) => {
-    setTasks((prev) => prev.filter((t) => !taskIds.includes(t.id)));
-    setDependencies((prev) => 
-      prev.filter((d) => !taskIds.includes(d.source) && !taskIds.includes(d.target))
-    );
-  }, []);
+    deleteTasks(taskIds);
+  }, [deleteTasks]);
 
   const handleDeleteEdges = useCallback((dependencyIds: string[]) => {
-    setDependencies((prev) => prev.filter((d) => !dependencyIds.includes(d.id)));
-  }, []);
+    removeDependencies(dependencyIds);
+  }, [removeDependencies]);
 
   const handleConnect = useCallback((connection: Connection) => {
     if (!connection.source || !connection.target) return;
     
-    // Check if dependency already exists
-    const exists = dependencies.some(
-      (d) => d.source === connection.source && d.target === connection.target
-    );
-    if (exists) return;
-
     const newDependency: Dependency = {
       id: `d-${Date.now()}`,
       source: connection.source,
       target: connection.target,
       type: 'finish_to_start',
     };
-    setDependencies((prev) => [...prev, newDependency]);
-  }, [dependencies]);
+    addDependency(newDependency);
+  }, [addDependency]);
 
   const handleDeleteSingleTask = () => {
     if (!editingTask) return;
-    setTasks((prev) => prev.filter((t) => t.id !== editingTask.id));
-    setDependencies((prev) => 
-      prev.filter((d) => d.source !== editingTask.id && d.target !== editingTask.id)
-    );
+    deleteTasks([editingTask.id]);
     setEditingTask(null);
     setIsTaskModalOpen(false);
   };
@@ -97,15 +91,17 @@ export default function GraphPage() {
             <h1 className="text-xl font-bold text-ink-black flex items-center gap-2">
               <span className="text-status-agent">⚡</span> Project Talent Tree
             </h1>
-            <Button 
-              variant="primary" 
-              size="sm" 
-              onClick={openAddModal}
-              className="gap-2"
-            >
-              <Plus size={16} />
-              Add Task
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="primary" 
+                size="sm" 
+                onClick={openAddModal}
+                className="gap-2"
+              >
+                <Plus size={16} />
+                Add Task
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-[2px] border border-concrete-rough shadow-sm">

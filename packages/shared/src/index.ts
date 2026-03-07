@@ -1,26 +1,40 @@
-export type TaskStatus = "todo" | "doing" | "done" | "blocked" | "canceled";
+export type TaskStatus = "todo" | "inprogress" | "blocked" | "done" | "canceled";
 
-export type AssigneeType = "none" | "human" | "agent";
+export type TaskPriority = "high" | "medium" | "low";
+
+export type AssigneeType = "human" | "agent" | "none";
+
+export interface Assignee {
+  type: AssigneeType;
+  name: string;
+  avatarUrl?: string;
+  id?: string;
+}
 
 export interface Task {
   id: string;
   title: string;
   description?: string;
   status: TaskStatus;
-  assigneeType: AssigneeType;
-  assigneeId?: string;
-  priority?: number;
-  createdAt: string;
-  updatedAt: string;
-  version: number;
+  priority: TaskPriority;
+  tags: string[];
+  assignee?: Assignee;
+  
+  // Metadata
+  createdAt?: string;
+  updatedAt?: string;
+  version?: number;
 }
 
-export interface DependencyEdge {
-  fromTaskId: string;
-  toTaskId: string;
-  createdAt: string;
+export interface Dependency {
+  id: string;
+  source: string; // source task id (predecessor)
+  target: string; // target task id (successor)
+  type?: "finish_to_start";
+  createdAt?: string;
 }
 
+// Event Sourcing types (kept for future use)
 export interface ClaimRecord {
   taskId: string;
   assigneeType: AssigneeType;

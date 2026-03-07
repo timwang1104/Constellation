@@ -1,6 +1,7 @@
 import './globals.css'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import type { Metadata } from 'next'
+import { TaskProvider } from '@/context/TaskContext'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -27,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans bg-concrete-light text-ink-black min-h-screen">
-        {children}
+        <TaskProvider>
+          {children}
+        </TaskProvider>
       </body>
     </html>
   )

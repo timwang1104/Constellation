@@ -1,12 +1,16 @@
+'use client';
+
 import { Navbar } from "@/components/layout/Navbar";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
-import { initialTasks } from "@/data/mock";
+import { useTaskContext } from "@/context/TaskContext";
 
 export default function Home() {
-  const todoTasks = initialTasks.filter(t => t.status === 'todo');
-  const doingTasks = initialTasks.filter(t => t.status === 'inprogress');
-  const blockedTasks = initialTasks.filter(t => t.status === 'blocked');
-  const doneTasks = initialTasks.filter(t => t.status === 'done');
+  const { tasks } = useTaskContext();
+
+  const todoTasks = tasks.filter(t => t.status === 'todo');
+  const doingTasks = tasks.filter(t => t.status === 'inprogress');
+  const blockedTasks = tasks.filter(t => t.status === 'blocked');
+  const doneTasks = tasks.filter(t => t.status === 'done');
 
   return (
     <main className="flex flex-col min-h-screen bg-concrete-light font-sans text-ink-black selection:bg-status-agent selection:text-white">
