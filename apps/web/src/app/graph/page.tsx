@@ -4,21 +4,22 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { DependencyGraph } from '@/components/graph/DependencyGraph';
 import { EpicSelector } from '@/components/graph/EpicSelector';
-import { EpicForm } from '@/components/graph/EpicForm';
-import { Task, Dependency, Epic } from '@/types/kanban';
+import { GraphModals } from '@/components/graph/GraphModals';
+import { Task, Dependency, Epic, Project } from '@/types/kanban';
 import { Connection } from 'reactflow';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { TaskForm } from '@/components/graph/TaskForm';
 import { Plus, Save } from 'lucide-react';
 import { useTaskContext } from '@/context/TaskContext';
 import { initialEpics } from '@/data/mock';
+import { useGraphModals } from '@/hooks/useGraphModals';
+import { generateId } from '@/lib/id-generator';
 
 export default function GraphPage() {
   const { 
     tasks, 
     dependencies, 
     epics,
+    projects,
     addTask, 
     updateTask, 
     deleteTasks, 
@@ -26,15 +27,26 @@ export default function GraphPage() {
     removeDependencies,
     addEpic,
     updateEpic,
-    deleteEpic
+    deleteEpic,
+    addProject,
+    updateProject,
+    deleteProject
   } = useTaskContext();
+
+  const modals = useGraphModals();
+  const {
+    openAddTaskModal,
+    openEditTaskModal,
+    closeTaskModal,
+    closeEpicModal,
+    closeProjectModal,
+    editingTask,
+    editingEpic,
+    editingProject
+  } = modals;
 
   // State
   const [selectedEpicId, setSelectedEpicId] = useState<string>(initialEpics[0].id);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [isEpicModalOpen, setIsEpicModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [editingEpic, setEditingEpic] = useState<Epic | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Auto-save feedback
@@ -56,19 +68,18 @@ export default function GraphPage() {
   const handleAddTask = (taskData: Omit<Task, 'id'>) => {
     const newTask: Task = {
       ...taskData,
-      id: Math.random().toString(36).substr(2, 9), // Simple ID generation
+      id: generateId('task-'),
       tags: taskData.tags || [],
       epicId: selectedEpicId, // Auto-assign to current epic
     };
     addTask(newTask);
-    setIsTaskModalOpen(false);
+    closeTaskModal();
   };
 
   const handleEditTask = (taskData: Omit<Task, 'id'>) => {
     if (!editingTask) return;
     updateTask({ ...editingTask, ...taskData });
-    setEditingTask(null);
-    setIsTaskModalOpen(false);
+    closeTaskModal();
   };
 
   const handleDeleteNodes = useCallback((taskIds: string[]) => {
@@ -83,7 +94,7 @@ export default function GraphPage() {
     if (!connection.source || !connection.target) return;
     
     const newDependency: Dependency = {
-      id: `d-${Date.now()}`,
+      id: generateId('dep-'),
       source: connection.source,
       target: connection.target,
       sourceHandle: connection.sourceHandle,
@@ -96,35 +107,23 @@ export default function GraphPage() {
   const handleDeleteSingleTask = () => {
     if (!editingTask) return;
     deleteTasks([editingTask.id]);
-    setEditingTask(null);
-    setIsTaskModalOpen(false);
-  };
-
-  const openAddModal = () => {
-    setEditingTask(null);
-    setIsTaskModalOpen(true);
-  };
-
-  const openEditModal = (task: Task) => {
-    setEditingTask(task);
-    setIsTaskModalOpen(true);
+    closeTaskModal();
   };
 
   const handleAddEpic = (epicData: Omit<Epic, 'id'>) => {
     const newEpic: Epic = {
       ...epicData,
-      id: `epic-${Date.now()}`,
+      id: generateId('epic-'),
     };
     addEpic(newEpic);
-    setIsEpicModalOpen(false);
+    closeEpicModal();
     setSelectedEpicId(newEpic.id); // Switch to new epic
   };
 
   const handleEditEpic = (epicData: Omit<Epic, 'id'>) => {
     if (!editingEpic) return;
     updateEpic({ ...editingEpic, ...epicData });
-    setEditingEpic(null);
-    setIsEpicModalOpen(false);
+    closeEpicModal();
   };
 
   const handleDeleteEpic = () => {
@@ -139,24 +138,12 @@ export default function GraphPage() {
     }
     
     deleteEpic(editingEpic.id);
-    setEditingEpic(null);
-    setIsEpicModalOpen(false);
-  };
-
-  const openAddEpicModal = () => {
-    setEditingEpic(null);
-    setIsEpicModalOpen(true);
-  };
-
-  const openEditEpicModal = (epic: Epic) => {
-    setEditingEpic(epic);
-    setIsEpicModalOpen(true);
+    closeEpicModal();
   };
 
   const handleConfirmDeleteEpic = (epicId: string) => {
     const epicToDelete = epics.find(e => e.id === epicId);
     if (epicToDelete) {
-      // Use window.confirm for quick shortcut action
       if (window.confirm(`Are you sure you want to delete epic "${epicToDelete.title}"?`)) {
         if (selectedEpicId === epicId) {
             const otherEpic = epics.find(e => e.id !== epicId);
@@ -165,9 +152,42 @@ export default function GraphPage() {
             }
         }
         deleteEpic(epicId);
-        setIsEpicModalOpen(false); // Close if open
-        setEditingEpic(null);
+        closeEpicModal();
       }
+    }
+  };
+  
+  const handleConfirmDeleteProject = (projectId: string) => {
+      const projectToDelete = projects.find(p => p.id === projectId);
+      if (projectToDelete) {
+          if (window.confirm(`Are you sure you want to delete project "${projectToDelete.name}"?`)) {
+              deleteProject(projectId);
+              closeProjectModal();
+          }
+      }
+  };
+
+  // Project Handlers
+  const handleAddProject = (projectData: Omit<Project, 'id'>) => {
+    const newProject: Project = {
+      ...projectData,
+      id: generateId('proj-'),
+    };
+    addProject(newProject);
+    closeProjectModal();
+  };
+
+  const handleEditProject = (projectData: Omit<Project, 'id'>) => {
+    if (!editingProject) return;
+    updateProject({ ...editingProject, ...projectData });
+    closeProjectModal();
+  };
+
+  const handleDeleteProject = () => {
+    if (!editingProject) return;
+    if (window.confirm('Are you sure you want to delete this project?')) {
+       deleteProject(editingProject.id);
+       closeProjectModal();
     }
   };
 
@@ -178,12 +198,15 @@ export default function GraphPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Left Column: Epic Selector */}
         <EpicSelector 
+          projects={projects}
           epics={epics} 
           selectedEpicId={selectedEpicId} 
           onSelect={setSelectedEpicId}
-          onAddEpic={openAddEpicModal}
-          onEditEpic={openEditEpicModal}
+          onAddProject={modals.openAddProjectModal}
+          onAddEpic={modals.openAddEpicModal}
+          onEditEpic={modals.openEditEpicModal}
           onDeleteEpic={handleConfirmDeleteEpic}
+          onDeleteProject={handleConfirmDeleteProject}
         />
 
         {/* Right Column: Dependency Graph */}
@@ -198,7 +221,7 @@ export default function GraphPage() {
              <Button 
                 variant="primary" 
                 size="sm" 
-                onClick={openAddModal}
+                onClick={openAddTaskModal}
                 className="gap-2 shadow-lg"
               >
                 <Plus size={16} />
@@ -211,7 +234,7 @@ export default function GraphPage() {
               tasks={filteredTasks} 
               dependencies={filteredDependencies}
               onConnect={handleConnect}
-              onNodeDoubleClick={openEditModal}
+              onNodeDoubleClick={openEditTaskModal}
               onDeleteNodes={handleDeleteNodes}
               onDeleteEdges={handleDeleteEdges}
             />
@@ -219,31 +242,19 @@ export default function GraphPage() {
         </div>
       </div>
 
-      <Modal
-        isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        title={editingTask ? "Edit Task" : "New Task"}
-      >
-        <TaskForm
-          initialData={editingTask || undefined}
-          onSubmit={editingTask ? handleEditTask : handleAddTask}
-          onDelete={editingTask ? handleDeleteSingleTask : undefined}
-          onCancel={() => setIsTaskModalOpen(false)}
-        />
-      </Modal>
-
-      <Modal
-        isOpen={isEpicModalOpen}
-        onClose={() => setIsEpicModalOpen(false)}
-        title={editingEpic ? "Edit Epic" : "New Epic"}
-      >
-        <EpicForm
-          initialData={editingEpic || undefined}
-          onSubmit={editingEpic ? (data) => handleEditEpic(data) : (data) => handleAddEpic(data)}
-          onDelete={editingEpic ? handleDeleteEpic : undefined}
-          onCancel={() => setIsEpicModalOpen(false)}
-        />
-      </Modal>
+      <GraphModals 
+        modals={modals}
+        projects={projects}
+        onAddTask={handleAddTask}
+        onEditTask={handleEditTask}
+        onDeleteTask={handleDeleteSingleTask}
+        onAddEpic={handleAddEpic}
+        onEditEpic={handleEditEpic}
+        onDeleteEpic={handleDeleteEpic}
+        onAddProject={handleAddProject}
+        onEditProject={handleEditProject}
+        onDeleteProject={handleDeleteProject}
+      />
     </main>
   );
 }

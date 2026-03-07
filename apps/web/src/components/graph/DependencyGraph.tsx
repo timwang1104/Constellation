@@ -7,7 +7,6 @@ import ReactFlow, {
   MiniMap,
   useNodesState,
   useEdgesState,
-  addEdge,
   Connection,
   Edge,
   Node,
@@ -18,7 +17,7 @@ import 'reactflow/dist/style.css';
 import { Task, Dependency } from '@/types/kanban';
 import { TaskNode } from './TaskNode';
 import { getLayoutedElements } from '@/lib/graph-layout';
-import { MousePointer2, Hand, MousePointerClick } from 'lucide-react';
+import { MousePointer2, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface DependencyGraphProps {
@@ -81,11 +80,9 @@ export function DependencyGraph({
 
   const onConnect = useCallback(
     (params: Connection) => {
-      // Optimistically add edge locally (optional, but good for feedback)
-      setEdges((eds) => addEdge(params, eds)); 
       onConnectProp(params);
     },
-    [setEdges, onConnectProp]
+    [onConnectProp]
   );
 
   return (

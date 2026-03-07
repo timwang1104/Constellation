@@ -1,8 +1,24 @@
-import { Task, Dependency, Epic } from "@/types/kanban";
+import { Task, Dependency, Epic, Project } from "@/types/kanban";
+
+export const initialProjects: Project[] = [
+  {
+    id: 'proj-1',
+    name: 'Constellation Core',
+    description: 'The main application platform.',
+    status: 'active'
+  },
+  {
+    id: 'proj-2',
+    name: 'Marketing Site',
+    description: 'Public facing website and landing pages.',
+    status: 'active'
+  }
+];
 
 export const initialEpics: Epic[] = [
   {
     id: 'epic-1',
+    projectId: 'proj-1',
     title: 'E1: MVP Infrastructure',
     description: 'Set up the initial project structure, CI/CD pipelines, and core infrastructure requirements for the MVP release.',
     status: 'done',
@@ -10,6 +26,7 @@ export const initialEpics: Epic[] = [
   },
   {
     id: 'epic-2',
+    projectId: 'proj-1',
     title: 'E2: User Management',
     description: 'Implement user authentication, authorization, profile management, and dashboard features.',
     status: 'inprogress',
@@ -17,8 +34,17 @@ export const initialEpics: Epic[] = [
   },
   {
     id: 'epic-3',
+    projectId: 'proj-1',
     title: 'E3: Payment Integration',
     status: 'blocked',
+    progress: 0
+  },
+  {
+    id: 'epic-4',
+    projectId: 'proj-2',
+    title: 'E4: Landing Page',
+    description: 'Design and implement the main landing page with hero section and features.',
+    status: 'todo',
     progress: 0
   }
 ];

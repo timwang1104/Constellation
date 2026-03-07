@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Task, Dependency, Epic } from '@/types/kanban';
-import { initialTasks, initialDependencies, initialEpics } from '@/data/mock';
+import { Task, Dependency, Epic, Project } from '@/types/kanban';
+import { initialTasks, initialDependencies, initialEpics, initialProjects } from '@/data/mock';
 
 const STORAGE_KEY = 'constellation_graph_data';
 
@@ -10,6 +10,7 @@ interface TaskContextType {
   tasks: Task[];
   dependencies: Dependency[];
   epics: Epic[];
+  projects: Project[];
   addTask: (task: Task) => void;
   updateTask: (task: Task) => void;
   deleteTasks: (taskIds: string[]) => void;
@@ -18,6 +19,9 @@ interface TaskContextType {
   addEpic: (epic: Epic) => void;
   updateEpic: (epic: Epic) => void;
   deleteEpic: (epicId: string) => void;
+  addProject: (project: Project) => void;
+  updateProject: (project: Project) => void;
+  deleteProject: (projectId: string) => void;
   resetData: () => void;
 }
 
@@ -27,6 +31,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [dependencies, setDependencies] = useState<Dependency[]>(initialDependencies);
   const [epics, setEpics] = useState<Epic[]>(initialEpics);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from localStorage
@@ -46,6 +51,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         if (Array.isArray(parsed.epics)) {
             setEpics(parsed.epics);
         }
+        if (Array.isArray(parsed.projects)) {
+            setProjects(parsed.projects);
+        }
       } catch (e) {
         console.error('Failed to load graph data', e);
       }
@@ -61,10 +69,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       tasks,
       dependencies,
       epics,
+      projects,
       lastSaved: new Date().toISOString()
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [tasks, dependencies, epics, isInitialized]);
+  }, [tasks, dependencies, epics, projects, isInitialized]);
 
   const addTask = useCallback((task: Task) => {
     setTasks(prev => [...prev, task]);
@@ -106,6 +115,20 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     // For now, let's keep tasks but they will be orphaned from an epic perspective
   }, []);
 
+  const addProject = useCallback((project: Project) => {
+    setProjects(prev => [...prev, project]);
+  }, []);
+
+  const updateProject = useCallback((updatedProject: Project) => {
+    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+  }, []);
+
+  const deleteProject = useCallback((projectId: string) => {
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+    // When deleting a project, we should probably delete or unassign its epics
+    // For now, let's keep them (they will become unassigned)
+  }, []);
+
   const resetData = useCallback(() => {
     setTasks(initialTasks);
     setDependencies(initialDependencies);
@@ -114,10 +137,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <TaskContext.Provider value={{ 
-      tasks, 
-      dependencies, 
+    <TaskContext.Provider value={{
+      tasks,
+      dependencies,
       epics,
+      projects,
       addTask, 
       updateTask, 
       deleteTasks, 
@@ -126,6 +150,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       addEpic,
       updateEpic,
       deleteEpic,
+      addProject,
+      updateProject,
+      deleteProject,
       resetData
     }}>
       {children}

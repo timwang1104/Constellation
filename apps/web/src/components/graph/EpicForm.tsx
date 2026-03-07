@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { Epic, TaskStatus } from '@/types/kanban';
+import { Epic, Project, TaskStatus } from '@/types/kanban';
 import { Button } from '@/components/ui/Button';
 
 interface EpicFormProps {
   initialData?: Partial<Epic>;
+  projects: Project[];
   onSubmit: (data: Omit<Epic, 'id'>) => void;
   onCancel: () => void;
   onDelete?: () => void;
 }
 
-export function EpicForm({ initialData, onSubmit, onCancel, onDelete }: EpicFormProps) {
+export function EpicForm({ initialData, projects, onSubmit, onCancel, onDelete }: EpicFormProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [description, setDescription] = useState(initialData?.description || '');
   const [status, setStatus] = useState<TaskStatus>(initialData?.status || 'todo');
   const [progress, setProgress] = useState(initialData?.progress || 0);
+  const [projectId, setProjectId] = useState(initialData?.projectId || projects[0]?.id || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +24,7 @@ export function EpicForm({ initialData, onSubmit, onCancel, onDelete }: EpicForm
       description,
       status,
       progress,
+      projectId,
     });
   };
 
@@ -37,6 +40,21 @@ export function EpicForm({ initialData, onSubmit, onCancel, onDelete }: EpicForm
           required
           autoFocus
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
+        <select
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+          <option value="" disabled>Select a project</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
       </div>
 
       <div>

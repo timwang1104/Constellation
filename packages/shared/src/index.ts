@@ -11,8 +11,16 @@ export interface Assignee {
   id?: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  status?: "active" | "archived";
+}
+
 export interface Epic {
   id: string;
+  projectId: string;
   title: string;
   description?: string;
   status: TaskStatus;
