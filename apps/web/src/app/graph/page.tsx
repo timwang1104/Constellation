@@ -8,8 +8,9 @@ import { GraphModals } from '@/components/graph/GraphModals';
 import { Task, Dependency, Epic, Project } from '@/types/kanban';
 import { Connection } from 'reactflow';
 import { Button } from '@/components/ui/Button';
-import { Plus, Save } from 'lucide-react';
+import { Plus, Save, Undo } from 'lucide-react';
 import { useTaskContext } from '@/context/TaskContext';
+import { TaskDetailsPanel } from '@/components/graph/TaskDetailsPanel';
 import { initialEpics } from '@/data/mock';
 import { useGraphModals } from '@/hooks/useGraphModals';
 import { generateId } from '@/lib/id-generator';
@@ -30,7 +31,9 @@ export default function GraphPage() {
     deleteEpic,
     addProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    undo,
+    canUndo
   } = useTaskContext();
 
   const modals = useGraphModals();
@@ -48,6 +51,7 @@ export default function GraphPage() {
   // State
   const [selectedEpicId, setSelectedEpicId] = useState<string>(initialEpics[0].id);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // Auto-save feedback
   React.useEffect(() => {
@@ -63,6 +67,18 @@ export default function GraphPage() {
     const taskIds = new Set(filteredTasks.map(t => t.id));
     return dependencies.filter(dep => taskIds.has(dep.source) && taskIds.has(dep.target));
   }, [dependencies, filteredTasks]);
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo]);
 
   // Handlers
   const handleAddTask = (taskData: Omit<Task, 'id'>) => {
@@ -81,6 +97,14 @@ export default function GraphPage() {
     updateTask({ ...editingTask, ...taskData });
     closeTaskModal();
   };
+
+  const handleSelectionChange = useCallback((selectedTasks: Task[]) => {
+    if (selectedTasks.length === 1) {
+      setSelectedTask(selectedTasks[0]);
+    } else {
+      setSelectedTask(null);
+    }
+  }, []);
 
   const handleDeleteNodes = useCallback((taskIds: string[]) => {
     deleteTasks(taskIds);
@@ -218,15 +242,26 @@ export default function GraphPage() {
                 Saved {lastSaved.toLocaleTimeString()}
               </span>
             )}
-             <Button 
-                variant="primary" 
-                size="sm" 
-                onClick={openAddTaskModal}
-                className="gap-2 shadow-lg"
-              >
-                <Plus size={16} />
-                Add Task
-              </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={undo}
+              disabled={!canUndo}
+              className="gap-2 shadow-sm bg-white"
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo size={16} />
+              Undo
+            </Button>
+            <Button 
+              variant="primary" 
+              size="sm" 
+              onClick={openAddTaskModal}
+              className="gap-2 shadow-lg"
+            >
+              <Plus size={16} />
+              Add Task
+            </Button>
           </div>
 
           <div className="flex-1 w-full h-full">
@@ -237,7 +272,16 @@ export default function GraphPage() {
               onNodeDoubleClick={openEditTaskModal}
               onDeleteNodes={handleDeleteNodes}
               onDeleteEdges={handleDeleteEdges}
+              onSelectionChange={handleSelectionChange}
             />
+            
+            {selectedTask && (
+              <TaskDetailsPanel 
+                task={selectedTask} 
+                onClose={() => setSelectedTask(null)}
+                onEdit={openEditTaskModal}
+              />
+            )}
           </div>
         </div>
       </div>

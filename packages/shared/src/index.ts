@@ -36,6 +36,7 @@ export interface Task {
   priority: TaskPriority;
   tags: string[];
   assignee?: Assignee;
+  dueDate?: string;
   
   // Metadata
   createdAt?: string;

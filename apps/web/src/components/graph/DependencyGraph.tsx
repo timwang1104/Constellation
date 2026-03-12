@@ -27,6 +27,7 @@ interface DependencyGraphProps {
   onNodeDoubleClick: (task: Task) => void;
   onDeleteNodes: (taskIds: string[]) => void;
   onDeleteEdges: (dependencyIds: string[]) => void;
+  onSelectionChange?: (selectedTasks: Task[]) => void;
 }
 
 export function DependencyGraph({ 
@@ -35,7 +36,8 @@ export function DependencyGraph({
   onConnect: onConnectProp,
   onNodeDoubleClick,
   onDeleteNodes,
-  onDeleteEdges
+  onDeleteEdges,
+  onSelectionChange
 }: DependencyGraphProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -93,6 +95,11 @@ export function DependencyGraph({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onSelectionChange={({ nodes }) => {
+          if (onSelectionChange) {
+            onSelectionChange(nodes.map(n => n.data));
+          }
+        }}
         onNodeDoubleClick={(_, node) => onNodeDoubleClick(node.data)}
         onNodesDelete={(nodes) => onDeleteNodes(nodes.map(n => n.id))}
         onEdgesDelete={(edges) => onDeleteEdges(edges.map(e => e.id))}

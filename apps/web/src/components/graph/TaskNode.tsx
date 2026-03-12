@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
+import { Handle, Position, NodeProps, useStore } from 'reactflow';
 import { 
   Bot, User, AlertCircle, CheckCircle2, Lock, 
   Layout, Database, Server, FileText, CreditCard, Code, Cloud, Settings, Zap
@@ -49,13 +49,28 @@ export function TaskNode({ data, selected }: NodeProps<Task>) {
     "text-ink-light group-hover:text-ink-medium"
   );
 
+  const zoom = useStore((s) => s.transform[2]);
+  const showLabel = zoom >= 0.5;
+
   return (
     <div className="relative group">
+      {/* Label below node (Semantic Zoom) */}
+      <div className={cn(
+        "absolute -bottom-8 left-1/2 -translate-x-1/2 w-32 text-center transition-opacity duration-300",
+        showLabel ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}>
+        <span className={cn(
+          "text-[10px] font-medium px-1.5 py-0.5 rounded bg-white/80 backdrop-blur-sm border border-transparent truncate block max-w-full shadow-sm",
+          selected ? "text-ink-black border-status-agent" : "text-ink-medium"
+        )}>
+          {task.title}
+        </span>
+      </div>
+
       {/* Tooltip */}
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 bg-white text-ink-black p-3 rounded-md shadow-ando border border-concrete-rough opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
         <div className="flex justify-between items-start mb-1">
           <span className="font-bold text-sm text-ink-black">{task.title}</span>
-          <span className="text-xs font-mono text-ink-medium">#{task.id}</span>
         </div>
         
         <div className="flex items-center gap-2 mb-2">

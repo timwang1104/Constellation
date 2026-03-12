@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Epic, Project } from '@/types/kanban';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { Plus, Settings, ChevronDown, ChevronRight, Folder } from 'lucide-react';
+import { Plus, Settings, ChevronDown, ChevronRight, Folder, Trash2 } from 'lucide-react';
 
 interface EpicSelectorProps {
   projects: Project[];
@@ -17,6 +17,7 @@ interface EpicSelectorProps {
 }
 
 export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddProject, onAddEpic, onEditEpic, onDeleteEpic, onDeleteProject }: EpicSelectorProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -27,6 +28,12 @@ export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddP
       setExpandedProjects(new Set(projects.map(p => p.id)));
     }
   }, [projects]);
+
+  useEffect(() => {
+    if (selectedProjectId && !projects.some(p => p.id === selectedProjectId)) {
+      setSelectedProjectId(null);
+    }
+  }, [projects, selectedProjectId]);
 
   const toggleProject = (projectId: string) => {
     setExpandedProjects(prev => {
@@ -51,30 +58,6 @@ export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddP
     return grouped;
   }, [epics]);
 
-  // Keyboard support for deleting
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only trigger if we have a selection and no modal is open (simple check)
-      // In a real app we might check if an input is focused
-      if (
-        (e.key === 'Delete' || e.key === 'Backspace') && 
-        !(document.activeElement instanceof HTMLInputElement) &&
-        !(document.activeElement instanceof HTMLTextAreaElement)
-      ) {
-        if (selectedProjectId) {
-            onDeleteProject(selectedProjectId);
-        } else if (selectedEpicId) {
-            // Confirm before delete? For now, let's just trigger the callback
-            // The parent can decide whether to show a confirmation
-            onDeleteEpic(selectedEpicId);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEpicId, selectedProjectId, onDeleteEpic, onDeleteProject]);
-
   const handleSelectEpic = (id: string) => {
     onSelect(id);
     setSelectedProjectId(null); // Deselect project when epic is selected
@@ -83,6 +66,28 @@ export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddP
   const handleSelectProject = (projectId: string) => {
       setSelectedProjectId(projectId);
       toggleProject(projectId);
+  };
+
+  const isEditableTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    const tagName = target.tagName.toLowerCase();
+    if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') return true;
+    if (target.isContentEditable) return true;
+    return false;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (isEditableTarget(e.target)) return;
+    if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (selectedProjectId) {
+      onDeleteProject(selectedProjectId);
+      return;
+    }
+    onDeleteEpic(selectedEpicId);
   };
 
   useEffect(() => {
@@ -177,7 +182,13 @@ export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddP
   };
 
   return (
-    <div className="w-80 h-full bg-concrete-rough border-r border-ink-light/10 flex flex-col shadow-inner relative z-10">
+    <div
+      ref={containerRef}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onMouseDownCapture={() => containerRef.current?.focus()}
+      className="w-80 h-full bg-concrete-rough border-r border-ink-light/10 flex flex-col shadow-inner relative z-10 focus:outline-none"
+    >
       <div className="p-6 border-b border-ink-light/5 bg-concrete-light/50 backdrop-blur-sm flex justify-between items-center">
         <div>
           <h2 className="text-lg font-bold text-ink-black tracking-tight">PROJECTS</h2>
@@ -202,7 +213,7 @@ export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddP
                 <div key={project.id} className="mb-2">
                     <div 
                         className={cn(
-                            "flex items-center px-2 py-2 cursor-pointer text-ink-black font-semibold text-sm select-none rounded-md transition-colors",
+                            "flex items-center px-2 py-2 cursor-pointer text-ink-black font-semibold text-sm select-none rounded-md transition-colors group",
                             isProjectSelected ? "bg-black/10" : "hover:bg-black/5"
                         )}
                         onClick={() => handleSelectProject(project.id)}
@@ -210,7 +221,18 @@ export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddP
                         {isExpanded ? <ChevronDown size={16} className="text-ink-medium mr-2" /> : <ChevronRight size={16} className="text-ink-medium mr-2" />}
                         <Folder size={16} className="text-ink-medium mr-2" />
                         <span className="flex-1">{project.name}</span>
-                        <span className="text-xs text-ink-light bg-black/5 px-2 py-0.5 rounded-full">{projectEpics.length}</span>
+                        <span className="text-xs text-ink-light bg-black/5 px-2 py-0.5 rounded-full mr-2">{projectEpics.length}</span>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteProject(project.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/10 rounded transition-all text-ink-medium hover:text-red-600"
+                          title="Delete Project"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                     </div>
 
                     {isExpanded && (
