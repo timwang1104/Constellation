@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useCallback, useMemo, useState } from 'react';
+import React, { useEffect, useCallback, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -15,7 +15,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Task, Dependency } from '@/types/kanban';
-import { TaskNode } from './TaskNode';
+import { TaskNode, TaskNodeData, QuickExtendDirection } from './TaskNode';
 import { getLayoutedElements } from '@/lib/graph-layout';
 import { MousePointer2, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -24,6 +24,7 @@ interface DependencyGraphProps {
   tasks: Task[];
   dependencies: Dependency[];
   onConnect: (connection: Connection) => void;
+  onQuickExtend: (fromTask: Task, direction: QuickExtendDirection) => string;
   onNodeDoubleClick: (task: Task) => void;
   onDeleteNodes: (taskIds: string[]) => void;
   onDeleteEdges: (dependencyIds: string[]) => void;
@@ -34,6 +35,7 @@ export function DependencyGraph({
   tasks, 
   dependencies,
   onConnect: onConnectProp,
+  onQuickExtend: onQuickExtendProp,
   onNodeDoubleClick,
   onDeleteNodes,
   onDeleteEdges,
@@ -45,14 +47,42 @@ export function DependencyGraph({
 
   const nodeTypes = useMemo(() => ({ task: TaskNode }), []);
 
+  const hasAppliedInitialLayoutRef = useRef(false);
+  const nodesRef = useRef<Node<TaskNodeData>[]>([]);
+  const pendingNewNodePositionsRef = useRef<Record<string, { x: number; y: number }>>({});
+
   useEffect(() => {
-    // Transform tasks to nodes
-    const initialNodes: Node[] = tasks.map((task) => ({
-      id: task.id,
-      type: 'task',
-      data: task,
-      position: { x: 0, y: 0 },
-    }));
+    nodesRef.current = nodes as Node<TaskNodeData>[];
+  }, [nodes]);
+
+  const handleQuickExtend = useCallback(
+    (fromTask: Task, direction: QuickExtendDirection, suggestedPosition: { x: number; y: number }) => {
+      const newTaskId = onQuickExtendProp(fromTask, direction);
+      pendingNewNodePositionsRef.current[newTaskId] = suggestedPosition;
+    },
+    [onQuickExtendProp]
+  );
+
+  useEffect(() => {
+    const existingNodeById = new Map(nodesRef.current.map((n) => [n.id, n]));
+
+    const initialNodes: Node<TaskNodeData>[] = tasks.map((task) => {
+      const existing = existingNodeById.get(task.id);
+      const pendingPosition = pendingNewNodePositionsRef.current[task.id];
+      if (pendingPosition) {
+        delete pendingNewNodePositionsRef.current[task.id];
+      }
+
+      return {
+        id: task.id,
+        type: 'task',
+        data: {
+          task,
+          onQuickExtend: handleQuickExtend,
+        },
+        position: pendingPosition ?? existing?.position ?? { x: 0, y: 0 },
+      };
+    });
 
     // Transform dependencies to edges
     const initialEdges: Edge[] = dependencies.map((dep) => ({
@@ -69,16 +99,22 @@ export function DependencyGraph({
       className: 'cursor-pointer', 
     }));
 
-    // Apply layout
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      initialNodes,
-      initialEdges,
-      'LR'
-    );
+    if (!hasAppliedInitialLayoutRef.current) {
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+        initialNodes,
+        initialEdges,
+        'LR'
+      );
 
-    setNodes(layoutedNodes);
-    setEdges(layoutedEdges);
-  }, [tasks, dependencies, setNodes, setEdges]);
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+      hasAppliedInitialLayoutRef.current = true;
+      return;
+    }
+
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+  }, [tasks, dependencies, handleQuickExtend, setNodes, setEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -97,10 +133,10 @@ export function DependencyGraph({
         onConnect={onConnect}
         onSelectionChange={({ nodes }) => {
           if (onSelectionChange) {
-            onSelectionChange(nodes.map(n => n.data));
+            onSelectionChange(nodes.map(n => (n.data as TaskNodeData).task));
           }
         }}
-        onNodeDoubleClick={(_, node) => onNodeDoubleClick(node.data)}
+        onNodeDoubleClick={(_, node) => onNodeDoubleClick((node.data as TaskNodeData).task)}
         onNodesDelete={(nodes) => onDeleteNodes(nodes.map(n => n.id))}
         onEdgesDelete={(edges) => onDeleteEdges(edges.map(e => e.id))}
         nodeTypes={nodeTypes}
@@ -137,7 +173,7 @@ export function DependencyGraph({
         <Controls showInteractive={false} className="bg-white border-concrete-rough text-ink-dark shadow-sm" />
         <MiniMap 
           nodeColor={(node) => {
-            const status = node.data.status;
+            const status = (node.data as TaskNodeData).task.status;
             switch (status) {
               case 'blocked': return '#ef4444';
               case 'done': return '#22c55e';

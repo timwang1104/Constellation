@@ -4,10 +4,21 @@ import React from 'react';
 import { Handle, Position, NodeProps, useStore } from 'reactflow';
 import { 
   Bot, User, AlertCircle, CheckCircle2, Lock, 
-  Layout, Database, Server, FileText, CreditCard, Code, Cloud, Settings, Zap
+  Layout, Database, Server, FileText, CreditCard, Code, Cloud, Settings, Zap, Plus
 } from 'lucide-react';
 import { Task } from '@/types/kanban';
 import { cn } from '@/lib/utils';
+
+export type QuickExtendDirection = 'top' | 'right' | 'bottom' | 'left';
+
+export type TaskNodeData = {
+  task: Task;
+  onQuickExtend?: (
+    fromTask: Task,
+    direction: QuickExtendDirection,
+    suggestedPosition: { x: number; y: number }
+  ) => void;
+};
 
 const getIconForTask = (tags: string[]) => {
   if (tags.includes('frontend')) return <Layout size={24} />;
@@ -19,8 +30,8 @@ const getIconForTask = (tags: string[]) => {
   return <Code size={24} />;
 };
 
-export function TaskNode({ data, selected }: NodeProps<Task>) {
-  const task = data;
+export function TaskNode({ id, data, selected }: NodeProps<TaskNodeData>) {
+  const task = data.task;
   const isBlocked = task.status === 'blocked';
   const isDone = task.status === 'done';
   const isInProgress = task.status === 'inprogress';
@@ -51,6 +62,38 @@ export function TaskNode({ data, selected }: NodeProps<Task>) {
 
   const zoom = useStore((s) => s.transform[2]);
   const showLabel = zoom >= 0.5;
+
+  const nodeGeometry = useStore((s) => {
+    const node = s.nodeInternals.get(id);
+    const position = node?.positionAbsolute ?? node?.position ?? { x: 0, y: 0 };
+    return {
+      x: position.x,
+      y: position.y,
+      width: node?.width ?? 64,
+      height: node?.height ?? 64,
+    };
+  });
+
+  const handleQuickExtendClick = (direction: QuickExtendDirection) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const spacing = 160;
+    const nextPosition = (() => {
+      switch (direction) {
+        case 'top':
+          return { x: nodeGeometry.x, y: nodeGeometry.y - spacing };
+        case 'right':
+          return { x: nodeGeometry.x + spacing, y: nodeGeometry.y };
+        case 'bottom':
+          return { x: nodeGeometry.x, y: nodeGeometry.y + spacing };
+        case 'left':
+          return { x: nodeGeometry.x - spacing, y: nodeGeometry.y };
+      }
+    })();
+
+    data.onQuickExtend?.(task, direction, nextPosition);
+  };
 
   return (
     <div className="relative group">
@@ -104,6 +147,39 @@ export function TaskNode({ data, selected }: NodeProps<Task>) {
 
       {/* Main Node */}
       <div className={containerStyle}>
+        <button
+          type="button"
+          onClick={handleQuickExtendClick('top')}
+          className="absolute left-1/2 -translate-x-1/2 -top-5 w-5 h-5 rounded-full bg-white border border-concrete-rough shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-30 hover:border-ink-medium"
+          aria-label="Extend up"
+        >
+          <Plus size={12} className="text-ink-medium" />
+        </button>
+        <button
+          type="button"
+          onClick={handleQuickExtendClick('right')}
+          className="absolute top-1/2 -translate-y-1/2 -right-5 w-5 h-5 rounded-full bg-white border border-concrete-rough shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-30 hover:border-ink-medium"
+          aria-label="Extend right"
+        >
+          <Plus size={12} className="text-ink-medium" />
+        </button>
+        <button
+          type="button"
+          onClick={handleQuickExtendClick('bottom')}
+          className="absolute left-1/2 -translate-x-1/2 -bottom-5 w-5 h-5 rounded-full bg-white border border-concrete-rough shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-30 hover:border-ink-medium"
+          aria-label="Extend down"
+        >
+          <Plus size={12} className="text-ink-medium" />
+        </button>
+        <button
+          type="button"
+          onClick={handleQuickExtendClick('left')}
+          className="absolute top-1/2 -translate-y-1/2 -left-5 w-5 h-5 rounded-full bg-white border border-concrete-rough shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-30 hover:border-ink-medium"
+          aria-label="Extend left"
+        >
+          <Plus size={12} className="text-ink-medium" />
+        </button>
+
         {/* Handles on all 4 sides for flexible connections */}
         <Handle type="target" position={Position.Top} id="top" className="!bg-transparent !w-2 !h-2 !border-0 !top-0 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
         <Handle type="target" position={Position.Left} id="left" className="!bg-transparent !w-2 !h-2 !border-0 !left-0 opacity-0 group-hover:opacity-100 transition-opacity z-10" />

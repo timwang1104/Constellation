@@ -110,6 +110,11 @@ export function EpicSelector({ projects, epics, selectedEpicId, onSelect, onAddP
             e.stopPropagation();
             handleSelectEpic(epic.id);
         }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          handleSelectEpic(epic.id);
+          onEditEpic(epic);
+        }}
         className={cn(
           "cursor-pointer p-5 rounded-lg transition-all duration-500 transform-gpu relative group",
           isSelected 

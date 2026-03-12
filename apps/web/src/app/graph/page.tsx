@@ -6,6 +6,7 @@ import { DependencyGraph } from '@/components/graph/DependencyGraph';
 import { EpicSelector } from '@/components/graph/EpicSelector';
 import { GraphModals } from '@/components/graph/GraphModals';
 import { Task, Dependency, Epic, Project } from '@/types/kanban';
+import type { QuickExtendDirection } from '@/components/graph/TaskNode';
 import { Connection } from 'reactflow';
 import { Button } from '@/components/ui/Button';
 import { Plus, Save, Undo } from 'lucide-react';
@@ -127,6 +128,46 @@ export default function GraphPage() {
     };
     addDependency(newDependency);
   }, [addDependency]);
+
+  const handleQuickExtend = useCallback(
+    (fromTask: Task, direction: QuickExtendDirection) => {
+      const newTaskId = generateId('task-');
+      const newTask: Task = {
+        id: newTaskId,
+        title: 'New Task',
+        status: 'todo',
+        priority: 'medium',
+        tags: fromTask.tags || [],
+        epicId: fromTask.epicId ?? selectedEpicId,
+      };
+
+      addTask(newTask);
+
+      const isReverse = direction === 'left' || direction === 'top';
+      const source = isReverse ? newTaskId : fromTask.id;
+      const target = isReverse ? fromTask.id : newTaskId;
+
+      const handles = (() => {
+        if (direction === 'left' || direction === 'right') {
+          return { sourceHandle: 'right', targetHandle: 'left' };
+        }
+        return { sourceHandle: 'bottom', targetHandle: 'top' };
+      })();
+
+      const newDependency: Dependency = {
+        id: generateId('dep-'),
+        source,
+        target,
+        sourceHandle: handles.sourceHandle,
+        targetHandle: handles.targetHandle,
+        type: 'finish_to_start',
+      };
+
+      addDependency(newDependency);
+      return newTaskId;
+    },
+    [addDependency, addTask, selectedEpicId]
+  );
 
   const handleDeleteSingleTask = () => {
     if (!editingTask) return;
@@ -269,6 +310,7 @@ export default function GraphPage() {
               tasks={filteredTasks} 
               dependencies={filteredDependencies}
               onConnect={handleConnect}
+              onQuickExtend={handleQuickExtend}
               onNodeDoubleClick={openEditTaskModal}
               onDeleteNodes={handleDeleteNodes}
               onDeleteEdges={handleDeleteEdges}
