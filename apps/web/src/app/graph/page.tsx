@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Plus, Save, Undo } from 'lucide-react';
 import { useTaskContext } from '@/context/TaskContext';
 import { TaskDetailsPanel } from '@/components/graph/TaskDetailsPanel';
+import { AgentInteractionPanel } from '@/components/graph/AgentInteractionPanel';
 import { initialEpics } from '@/data/mock';
 import { useGraphModals } from '@/hooks/useGraphModals';
 import { generateId } from '@/lib/id-generator';
@@ -63,6 +64,10 @@ export default function GraphPage() {
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => task.epicId === selectedEpicId);
   }, [tasks, selectedEpicId]);
+
+  const selectedEpic = useMemo(() => {
+    return epics.find((e) => e.id === selectedEpicId) ?? null;
+  }, [epics, selectedEpicId]);
 
   const filteredDependencies = useMemo(() => {
     const taskIds = new Set(filteredTasks.map(t => t.id));
@@ -274,8 +279,8 @@ export default function GraphPage() {
           onDeleteProject={handleConfirmDeleteProject}
         />
 
-        {/* Right Column: Dependency Graph */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-concrete-light relative">
+        {/* Middle Column: Dependency Graph */}
+        <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-concrete-light relative">
           <div className="absolute top-4 right-4 z-10 flex gap-2 items-center">
             {lastSaved && (
               <span className="text-xs text-ink-medium mr-2 flex items-center gap-1 bg-white/80 px-2 py-1 rounded backdrop-blur-sm border border-concrete-rough shadow-sm">
@@ -326,6 +331,9 @@ export default function GraphPage() {
             )}
           </div>
         </div>
+
+        {/* Right Column: Agent Interaction */}
+        <AgentInteractionPanel epic={selectedEpic} selectedTask={selectedTask} />
       </div>
 
       <GraphModals 

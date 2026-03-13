@@ -24,7 +24,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@constellation/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": [
