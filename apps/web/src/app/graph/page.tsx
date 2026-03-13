@@ -13,7 +13,6 @@ import { Plus, Save, Undo } from 'lucide-react';
 import { useTaskContext } from '@/context/TaskContext';
 import { TaskDetailsPanel } from '@/components/graph/TaskDetailsPanel';
 import { AgentInteractionPanel } from '@/components/graph/AgentInteractionPanel';
-import { initialEpics } from '@/data/mock';
 import { useGraphModals } from '@/hooks/useGraphModals';
 import { generateId } from '@/lib/id-generator';
 
@@ -51,7 +50,7 @@ export default function GraphPage() {
   } = modals;
 
   // State
-  const [selectedEpicId, setSelectedEpicId] = useState<string>(initialEpics[0].id);
+  const [selectedEpicId, setSelectedEpicId] = useState<string>('');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -60,8 +59,26 @@ export default function GraphPage() {
     setLastSaved(new Date());
   }, [tasks, dependencies, epics]);
 
+  // Initialize selected epic from existing epics when available
+  React.useEffect(() => {
+    if (!selectedEpicId && epics.length > 0) {
+      setSelectedEpicId(epics[0].id);
+    }
+  }, [epics, selectedEpicId]);
+
+  React.useEffect(() => {
+    if (!selectedEpicId) {
+      setSelectedTask(null);
+      return;
+    }
+    if (selectedTask && selectedTask.epicId !== selectedEpicId) {
+      setSelectedTask(null);
+    }
+  }, [selectedEpicId, selectedTask]);
+
   // Filter Tasks and Dependencies
   const filteredTasks = useMemo(() => {
+    if (!selectedEpicId) return [];
     return tasks.filter(task => task.epicId === selectedEpicId);
   }, [tasks, selectedEpicId]);
 
@@ -70,6 +87,7 @@ export default function GraphPage() {
   }, [epics, selectedEpicId]);
 
   const filteredDependencies = useMemo(() => {
+    if (!selectedEpicId) return [];
     const taskIds = new Set(filteredTasks.map(t => t.id));
     return dependencies.filter(dep => taskIds.has(dep.source) && taskIds.has(dep.target));
   }, [dependencies, filteredTasks]);
@@ -88,6 +106,10 @@ export default function GraphPage() {
 
   // Handlers
   const handleAddTask = (taskData: Omit<Task, 'id'>) => {
+    if (!selectedEpicId) {
+      closeTaskModal();
+      return;
+    }
     const newTask: Task = {
       ...taskData,
       id: generateId('task-'),
@@ -136,6 +158,7 @@ export default function GraphPage() {
 
   const handleQuickExtend = useCallback(
     (fromTask: Task, direction: QuickExtendDirection) => {
+      if (!fromTask.epicId && !selectedEpicId) return '';
       const newTaskId = generateId('task-');
       const newTask: Task = {
         id: newTaskId,
@@ -303,6 +326,7 @@ export default function GraphPage() {
               variant="primary" 
               size="sm" 
               onClick={openAddTaskModal}
+              disabled={!selectedEpicId}
               className="gap-2 shadow-lg"
             >
               <Plus size={16} />

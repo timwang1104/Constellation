@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Task, Dependency, Epic, Project } from '@/types/kanban';
-import { initialTasks, initialDependencies, initialEpics, initialProjects } from '@/data/mock';
 
 const STORAGE_KEY = 'constellation_graph_data';
 const MAX_HISTORY_SIZE = 50;
@@ -38,10 +37,10 @@ interface TaskContextType {
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [dependencies, setDependencies] = useState<Dependency[]>(initialDependencies);
-  const [epics, setEpics] = useState<Epic[]>(initialEpics);
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [dependencies, setDependencies] = useState<Dependency[]>([]);
+  const [epics, setEpics] = useState<Epic[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Use ref for history to avoid stale closures; track length for canUndo reactivity
@@ -180,9 +179,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   const resetData = useCallback(() => {
     saveHistory();
-    setTasks(initialTasks);
-    setDependencies(initialDependencies);
-    setEpics(initialEpics);
+    setTasks([]);
+    setDependencies([]);
+    setEpics([]);
+    setProjects([]);
     localStorage.removeItem(STORAGE_KEY);
   }, [saveHistory]);
 
